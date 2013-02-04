@@ -4,6 +4,14 @@ class Xrange(object):
 
     #конструктор
     def __init__(self, *args):
+        if(len(args) == 0):
+            raise TypeError("Xrange requires 1-3 int arguments")
+        elif(len(args)>3):
+            raise TypeError("Xrange can take no more than 3 int values as parameters")
+        else:
+            for i in args:
+                if(i is None):
+                    raise TypeError("An integer is required as a param")
         self._slice = slice(*args)
         if(self._slice.start >= self._slice.stop and (self._slice.step is None or self._slice.step >0)):
             self._slice = slice(0,0,1)
@@ -25,6 +33,8 @@ class Xrange(object):
     def step(self):
         if self._slice.step is None:
             return 1
+        elif self._slice.step == 0:
+            raise TypeError("Slice step cannot be zero")
         return self._slice.step
 
     #comparing two objects
@@ -33,10 +43,6 @@ class Xrange(object):
 
     #implementing calling len() function
     def __len__(self):
-        return self._len()
-
-    #finding out "length" of an object
-    def _len(self):
         if abs(self.stop - self.start) % self.step == 0:
             return abs((self.stop - self.start)/(self.step))
         else:
@@ -49,19 +55,21 @@ class Xrange(object):
     def __getitem__(self, index):
         #если получаем на вход не один индекс (то есть объект нужно "слайснуть")
         if isinstance(index, slice):
-            start, stop, step = index.indices(self._len())
+            start, stop, step = index.indices(self.__len__())
             return Xrange(self._index(start), self._index(stop), step*self.step)
         #если получаем на вход один индекс
         elif isinstance(index, (int,long)):
             if index >= 0:
                 i=index
             else:
-                i = index + self._len()
-            if (i<0) or (i>= self._len()):
+                i = index + self.__len__()
+            if (i<0) or (i>= self.__len__()):
                 raise IndexError("Index out of bounds")
             return self._index(i)
         else:
             raise TypeError("only slice or plain idex notations are maintained")
+
+#tests section
 
 assert list(Xrange(1,10)) == list(xrange(1,10))
 assert list(Xrange(3,-20)) == list(xrange(3,-20))
